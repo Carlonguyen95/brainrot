@@ -27,7 +27,7 @@ export default function SearchBar() {
           placeholder="Search for a word..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-4 pr-12 py-2 bg-white text-black rounded-full"
+          className="w-full pl-4 pr-12 py-2 bg-white text-black rounded-full focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         <Button
           type="submit"
