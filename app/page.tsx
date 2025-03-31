@@ -1,55 +1,64 @@
-import Link from "next/link"
-import { getRecentDefinitions } from "@/lib/definitions"
-import { getPopularSlangTerms } from "@/lib/slang-terms"
-import { getUserVote } from "@/lib/votes"
-import { linkSlangTerms } from "@/lib/link-slang-terms"
-import Header from "@/components/header"
-import StickyVideo from "@/components/sticky-video"
-import CatSticky from "@/components/cat-sticky"
-import DefinitionCard from "@/components/definition-card"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trophy, TrendingUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Pagination from "@/components/pagination"
-import BannerAd from "@/components/ads/banner-ad"
-import StickyPoleAd from "@/components/ads/sticky-pole-ad"
-import FlagBanner from "@/components/ads/flag-banner"
-import { AD_CONFIG } from "@/lib/ad-config"
+import Link from "next/link";
+import { getRecentDefinitions } from "@/lib/definitions";
+import { getPopularSlangTerms } from "@/lib/slang-terms";
+import { getUserVote } from "@/lib/votes";
+import { linkSlangTerms } from "@/lib/link-slang-terms";
+import { getTodaysWordOfTheDay } from "@/lib/actions/wotd-actions";
+import Header from "@/components/header";
+import StickyVideo from "@/components/sticky-video";
+import CatSticky from "@/components/cat-sticky";
+import DefinitionCard from "@/components/definition-card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Pagination from "@/components/pagination";
+import BannerAd from "@/components/ads/banner-ad";
+import StickyPoleAd from "@/components/ads/sticky-pole-ad";
+import FlagBanner from "@/components/ads/flag-banner";
+import { AD_CONFIG } from "@/lib/ad-config";
 
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { page?: string }
+  searchParams: { page?: string };
 }) {
-  const currentPage = Number(searchParams.page) || 1
-  const pageSize = 7
-  const totalDefinitions = 100 // This would ideally come from a count query
-  const totalPages = Math.ceil(totalDefinitions / pageSize)
+  const currentPage = Number(searchParams.page) || 1;
+  const pageSize = 7;
+  const totalDefinitions = 100; // This would ideally come from a count query
+  const totalPages = Math.ceil(totalDefinitions / pageSize);
 
   // Use the server-side configuration
-  const useGoogleAds = AD_CONFIG.useGoogleAds
+  const useGoogleAds = AD_CONFIG.useGoogleAds;
 
-  const recentDefinitions = await getRecentDefinitions(pageSize, (currentPage - 1) * pageSize)
-  const trendingTerms = await getPopularSlangTerms(5)
+  const recentDefinitions = await getRecentDefinitions(
+    pageSize,
+    (currentPage - 1) * pageSize
+  );
+  const trendingTerms = await getPopularSlangTerms(5);
+  const wordOfTheDay = await getTodaysWordOfTheDay();
 
   // Get user votes for all definitions
-  const userVotesPromises = recentDefinitions.map((def) => getUserVote(def.id))
-  const userVotes = await Promise.all(userVotesPromises)
+  const userVotesPromises = recentDefinitions.map((def) => getUserVote(def.id));
+  const userVotes = await Promise.all(userVotesPromises);
 
   // Pre-process linked definitions and examples
-  const linkedDefinitionsPromises = recentDefinitions.map((def) => linkSlangTerms(def.definition))
+  const linkedDefinitionsPromises = recentDefinitions.map((def) =>
+    linkSlangTerms(def.definition)
+  );
   const linkedExamplesPromises = recentDefinitions.map((def) =>
-    def.example ? linkSlangTerms(def.example) : Promise.resolve([]),
-  )
+    def.example ? linkSlangTerms(def.example) : Promise.resolve([])
+  );
 
-  const linkedDefinitions = await Promise.all(linkedDefinitionsPromises)
-  const linkedExamples = await Promise.all(linkedExamplesPromises)
+  const linkedDefinitions = await Promise.all(linkedDefinitionsPromises);
+  const linkedExamples = await Promise.all(linkedExamplesPromises);
 
-  // Get the first definition for Word of the Day
-  const wordOfTheDay = recentDefinitions[0]
-  const wordOfTheDayLinkedDef = wordOfTheDay ? await linkSlangTerms(wordOfTheDay.definition) : []
-  const wordOfTheDayLinkedExample =
-    wordOfTheDay && wordOfTheDay.example ? await linkSlangTerms(wordOfTheDay.example) : []
+  // Get linked content for Word of the Day
+  const wordOfTheDayLinkedDef = wordOfTheDay?.definition
+    ? await linkSlangTerms(wordOfTheDay.definition.definition)
+    : [];
+  const wordOfTheDayLinkedExample = wordOfTheDay?.definition?.example
+    ? await linkSlangTerms(wordOfTheDay.definition.example)
+    : [];
 
   return (
     <div className="min-h-screen bg-purple-50">
@@ -68,19 +77,27 @@ export default async function Home({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {wordOfTheDay ? (
+                {wordOfTheDay?.definition ? (
                   <div>
                     <Link
-                      href={`/define/${wordOfTheDay.word}`}
+                      href={`/define/${wordOfTheDay.definition.word}`}
                       className="text-xl font-bold text-blue-600 hover:underline"
                     >
-                      {wordOfTheDay.word}
+                      {wordOfTheDay.definition.word}
                     </Link>
-                    <p className="mt-2 text-gray-700">{wordOfTheDayLinkedDef}</p>
-                    {wordOfTheDay.example && <p className="mt-2 text-gray-500 italic">"{wordOfTheDayLinkedExample}"</p>}
+                    <p className="mt-2 text-gray-700">
+                      {wordOfTheDayLinkedDef}
+                    </p>
+                    {wordOfTheDay.definition.example && (
+                      <p className="mt-2 text-gray-500 italic">
+                        "{wordOfTheDayLinkedExample}"
+                      </p>
+                    )}
                   </div>
                 ) : (
-                  <p className="text-gray-500">No word of the day available yet.</p>
+                  <p className="text-gray-500">
+                    No word of the day available yet.
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -98,7 +115,10 @@ export default async function Home({
                   {trendingTerms.map((term) => (
                     <li key={term.word} className="flex items-center">
                       <span className="text-gray-400 mr-2">★</span>
-                      <Link href={`/define/${term.word}`} className="text-blue-600 hover:underline">
+                      <Link
+                        href={`/define/${term.word}`}
+                        className="text-blue-600 hover:underline"
+                      >
                         {term.word}
                       </Link>
                     </li>
@@ -125,23 +145,36 @@ export default async function Home({
                   tags={def.tags}
                   userVote={userVotes[index] as "upvote" | "downvote" | null}
                   linkedDefinition={linkedDefinitions[index]}
-                  linkedExample={def.example ? linkedExamples[index] : undefined}
+                  linkedExample={
+                    def.example ? linkedExamples[index] : undefined
+                  }
                 />
 
                 {/* Insert banner ad after every 2 cards */}
-                {(index + 1) % 2 === 0 && index < recentDefinitions.length - 1 && (
-                  <BannerAd key={`ad-${index}`} index={Math.floor(index / 2)} useGoogleAds={useGoogleAds} />
-                )}
+                {(index + 1) % 2 === 0 &&
+                  index < recentDefinitions.length - 1 && (
+                    <BannerAd
+                      key={`ad-${index}`}
+                      index={Math.floor(index / 2)}
+                      useGoogleAds={useGoogleAds}
+                    />
+                  )}
               </div>
             ))}
 
             {/* Pagination */}
             <div className="mt-8">
-              <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={"/"} />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                baseUrl={"/"}
+              />
 
               <div className="mt-6 text-center">
                 <Link href={"/random"}>
-                  <Button className="bg-purple-600 hover:bg-purple-700">More Random Definitions</Button>
+                  <Button className="bg-purple-600 hover:bg-purple-700">
+                    More Random Definitions
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -160,10 +193,12 @@ export default async function Home({
 
       <footer className="bg-purple-700 text-white py-6">
         <div className="container mx-auto px-4 text-center">
-          <p>© {new Date().getFullYear()} Brain Rot Dictionary. All Rights Reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Brain Rot Dictionary. All Rights
+            Reserved.
+          </p>
         </div>
       </footer>
     </div>
-  )
+  );
 }
-
