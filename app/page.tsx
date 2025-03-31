@@ -189,8 +189,8 @@ export default async function Home({
       </main>
 
       {/* Sticky Pole Ad */}
-      <StickyPoleAd useGoogleAds={useGoogleAds} />
-
+      {/*       <StickyPoleAd useGoogleAds={useGoogleAds} />
+       */}
       <footer className="bg-purple-700 text-white py-6">
         <div className="container mx-auto px-4 text-center">
           <p>
