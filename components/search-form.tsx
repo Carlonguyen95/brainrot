@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
-import { Search, Shuffle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Search, Shuffle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type SearchFormProps = {
-  initialQuery?: string
-  className?: string
-  variant?: "default" | "minimal"
-  placeholder?: string
-  showRandomButton?: boolean
-}
+  initialQuery?: string;
+  className?: string;
+  variant?: "default" | "minimal";
+  placeholder?: string;
+  showRandomButton?: boolean;
+};
 
 export default function SearchForm({
   initialQuery = "",
@@ -23,24 +23,24 @@ export default function SearchForm({
   placeholder = "Search",
   showRandomButton = false,
 }: SearchFormProps) {
-  const [query, setQuery] = useState(initialQuery)
-  const router = useRouter()
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [query, setQuery] = useState(initialQuery);
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Update the input value if initialQuery changes
-    setQuery(initialQuery)
-  }, [initialQuery])
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (query.trim().length > 0) {
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   }
 
   function handleRandomClick() {
-    router.push("/random")
+    router.push("/random");
   }
 
   return (
@@ -53,7 +53,7 @@ export default function SearchForm({
           placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-10 pr-12 py-3 rounded-full border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+          className="pl-10 pr-12 py-3 rounded-full border-gray-200 focus:ring-0 focus:ring-offset-0 "
         />
         {showRandomButton && (
           <Button
@@ -70,6 +70,5 @@ export default function SearchForm({
         )}
       </div>
     </form>
-  )
+  );
 }
-
