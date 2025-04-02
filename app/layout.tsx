@@ -25,7 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <GoogleAnalytics measurementId="G-YBXEK3KYDQ" />
+        <GoogleAnalytics measurementId="G-E8LES59G6J" />
       </head>
       <body className={inter.className}>
         <ErrorBoundary
